@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Melanoma Detection</title>
+  <link rel="shortcut icon" href="{{ url_for('static', filename='logo.png') }}" type="image/x-icon">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --text: #111111;
+      --card: #ffffff;
+    }
+
+    .dark-mode {
+      --bg: #121212;
+      --text: #f5f5f5;
+      --card: #1e1e1e;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+
+    header {
+      background: linear-gradient(90deg, #ff6b6b, #f06595, #845ef7);
+      padding: 30px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      font-weight: 300;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: 40px auto;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    input[type="file"] {
+      padding: 12px;
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      background-color: #f8f9fa;
+      cursor: pointer;
+      transition: border 0.3s ease;
+    }
+
+    input[type="file"]:hover {
+      border-color: #845ef7;
+    }
+
+    input[type="submit"] {
+      padding: 15px;
+      background: #845ef7;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    input[type="submit"]:hover {
+      background: #5f3dc4;
+    }
+
+    .preview img {
+      max-width: 300px;
+      border-radius: 12px;
+      margin-top: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .card {
+      background: var(--card);
+      color: var(--text);
+      padding: 20px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      animation: fadeIn 0.7s ease-in-out;
+    }
+
+    ul {
+      text-align: left;
+      padding-left: 20px;
+    }
+
+    .confidence {
+      font-size: 18px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: white;
+      transition: transform 0.3s;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.2);
+    }
+
+    footer {
+      background-color: #343a40;
+      color: #adb5bd;
+      text-align: center;
+      padding: 20px 0;
+      font-size: 0.9rem;
+      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        margin: 20px;
+        padding: 25px;
+      }
+
+      header h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <button class="theme-toggle" onclick="toggleDarkMode()">🌓</button>
+    <h1>Melanoma Detection</h1>
+    <p>Upload & Predict - Benign or Malignant</p>
+  </header>
+
+  <div class="container">
+    <h2>Upload Your Skin Report</h2>
+    <form action="/classify" method="post" enctype="multipart/form-data">
+      <input type="file" name="image" accept="image/*" required />
+      <input type="submit" value="Classify Image" />
+    </form>
+
+    {% if img_path %}
+    <div class="preview">
+      <h3>📷 Uploaded Image</h3>
+      <img src="{{ img_path }}">
+    </div>
+    {% endif %}
+
+    {% if result %}
+    <div class="card">
+      <p class="confidence">🔬 Confidence: {{ result.confidence }}%</p>
+      <p>{{ result.message }}</p>
+
+      {% if result.is_cancer %}
+      <div>
+        <h4>⚠️ Symptoms:</h4>
+        <ul>
+          {% for s in result.symptoms %}
+          <li>{{ s }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div>
+        <h4>💡 Tips:</h4>
+        <ul>
+          {% for t in result.tips %}
+          <li>{{ t }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <p><strong>🩺 Advice:</strong> {{ result.advice }}</p>
+    </div>
+    {% endif %}
+
+    {% if history %}
+    <div class="card history">
+      <h3>🕓 Recent Uploads</h3>
+      {% for h in history %}
+      <div style="margin: 10px;">
+        <img src="{{ h.img_path }}" style="max-width: 80px; border-radius: 10px;"><br>
+        <small>{{ h.result }} ({{ h.confidence }}%)</small>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Skin Cancer Project | Made with ❤️ by Live the Code 2.0</p>
+  </footer>
+
+  <script>
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    function showSpinner() {
+      document.getElementById("spinner").classList.add("show");
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.innerText = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
+
+    // Show toast if image uploaded
+    {% if img_path %}
+      window.onload = () => {
+        showToast("✅ Image uploaded successfully!");
+      };
+    {% endif %}
+  </script>
+</body>
+</html>
